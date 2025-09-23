@@ -1,5 +1,70 @@
-This is a full-stack role-based web application built using the MERN stack (MongoDB, Express.js, React.js, and Node.js). The project allows users to register, log in, and submit ratings for stores registered on the platform. There are three user roles: System Administrator, Normal User, and Store Owner. Each role has specific access and functionalities. The system administrator can add users and stores, view dashboards with statistics like total users, stores, and ratings, and filter or sort data. Normal users can register through a signup form, view stores, submit ratings from 1 to 5, and update their password. Store owners can log in to view the average rating of their own stores and see the list of users who have rated them.
+# Reddit ReactJS Posts Viewer
 
-The backend is powered by Node.js and Express with MongoDB as the database, and uses JWT for secure authentication and bcrypt for password hashing. The frontend is developed in React with Bootstrap used for styling and Axios for making API requests. All users authenticate using the same login system, and access is controlled based on user roles. Form validations are included both on the frontend and backend to ensure data integrity.
+A responsive web application that displays posts from r/reactjs subreddit in a beautiful card format.
 
-To run the application, clone the repository and install dependencies for both the backend and frontend. Configure the backend with a .env file containing the MongoDB URI and JWT secret. Start the backend using Node or Nodemon and launch the frontend with npm start. This project is suitable for understanding how to build secure, role-based applications with proper routing, data flow, and user experience.
+## Features
+
+✨ **Beautiful Design**
+- Modern gradient background
+- Animated cards with hover effects
+- Color-coded scores
+- Responsive layout optimized for 1280x720 resolution
+
+📱 **Responsive Design**
+- Works on desktop, tablet, and mobile devices
+- Grid layout that adapts to screen size
+- Mobile-friendly navigation
+
+🎯 **Data Display**
+- **Title**: Post title (clickable to open original post)
+- **SelfText_HTML**: Post content with expand/collapse for long posts
+- **URL**: Direct link to the original Reddit post
+- **Score**: Post score with color coding (green for positive, orange for high scores)
+
+## Quick Start
+
+### Option 1: Using Python Server (Recommended)
+```bash
+python3 server.py
+```
+This will start a local server at `http://localhost:8000` and automatically open your browser.
+
+### Option 2: Direct File Access
+Simply open `index.html` in your web browser. Note that some browsers may have CORS restrictions when accessing external APIs from local files.
+
+## Technical Details
+
+- **Data Source**: https://www.reddit.com/r/reactjs.json
+- **Fields Used**: title, selftext_html, url, score (from children array)
+- **Default Resolution**: 1280x720 (fully responsive)
+- **Technologies**: HTML5, CSS3, Vanilla JavaScript
+
+## Browser Compatibility
+
+- Chrome/Chromium (recommended)
+- Firefox
+- Safari
+- Edge
+
+## CORS Considerations
+
+The application fetches data directly from Reddit's JSON API. If you encounter CORS issues:
+1. Use the included Python server (`python3 server.py`)
+2. Use a browser extension to disable CORS (development only)
+3. Deploy to a web server
+
+## Customization
+
+The application uses CSS custom properties and is easy to customize:
+- Colors can be modified in the CSS variables
+- Card layout can be adjusted in the `.posts-grid` class
+- Responsive breakpoints are defined in media queries
+
+## File Structure
+
+```
+/workspace/
+├── index.html      # Main application file
+├── server.py       # Python development server
+└── README.md       # This file
+```
