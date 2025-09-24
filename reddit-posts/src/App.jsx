@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import PostCard from './components/PostCard'
 import LoadingSpinner from './components/LoadingSpinner'
 import ErrorMessage from './components/ErrorMessage'
+import { corsAwareFetch, getBestCorsStrategy } from './utils/corsProxy'
 
 function App() {
   const [posts, setPosts] = useState([])
@@ -12,61 +13,101 @@ function App() {
     fetchRedditPosts()
   }, [])
 
+  // Simple fallback method using manual proxy list
+  const fetchRedditPostsSimple = async () => {
+    const proxies = [
+      'https://api.allorigins.win/get?url=',
+      'https://corsproxy.io/?',
+      'https://cors.sh/',
+      'https://proxy.cors.sh/',
+      'https://thingproxy.freeboard.io/fetch/'
+    ];
+    
+    const redditUrl = 'https://www.reddit.com/r/reactjs.json';
+    
+    for (const proxy of proxies) {
+      try {
+        console.log('🔄 Trying proxy:', proxy);
+        const url = proxy + encodeURIComponent(redditUrl);
+        const response = await fetch(url);
+        
+        if (!response.ok) continue;
+        
+        let data = await response.json();
+        
+        // Handle AllOrigins format
+        if (data.contents) {
+          data = JSON.parse(data.contents);
+        }
+        
+        if (data?.data?.children?.length > 0) {
+          console.log('✅ Success!');
+          return data.data.children;
+        }
+      } catch (error) {
+        console.warn('❌ Proxy failed:', proxy);
+        continue;
+      }
+    }
+    
+    throw new Error('All proxies failed');
+  };
+
   const fetchRedditPosts = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      // Determine API URL based on environment
-      const getApiUrl = () => {
-        // In development, use Vite proxy
-        if (import.meta.env.DEV) {
-          return '/api/reddit/r/reactjs.json'
+      // Strategy 1: Try smart CORS strategy based on environment
+      try {
+        const strategy = getBestCorsStrategy();
+        console.log('🎯 Using strategy:', strategy.type);
+        
+        if (strategy.type === 'cors-proxy') {
+          // Use the utility function for automatic proxy detection
+          const data = await corsAwareFetch(strategy.url);
+          setPosts(data.data.children);
+          return;
+        } else {
+          // Try platform-specific endpoints
+          const response = await fetch(strategy.url, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'ReactJS-Reddit-Viewer/1.0.0'
+            },
+            signal: AbortSignal.timeout(10000)
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            const parsedData = strategy.parser(data);
+            
+            if (parsedData?.data?.children?.length > 0) {
+              setPosts(parsedData.data.children);
+              return;
+            }
+          }
         }
-        
-        // In production, try Netlify function first
-        if (window.location.hostname.includes('netlify.app') || window.location.hostname.includes('netlify.com')) {
-          return '/.netlify/functions/reddit-proxy'
-        }
-        
-        // Fallback to CORS proxy services for other deployments
-        const corsProxies = [
-          'https://api.allorigins.win/get?url=',
-          'https://corsproxy.io/?',
-          'https://cors-anywhere.herokuapp.com/'
-        ]
-        
-        const redditUrl = encodeURIComponent('https://www.reddit.com/r/reactjs.json')
-        return `${corsProxies[0]}${redditUrl}`
+      } catch (strategyError) {
+        console.warn('❌ Smart strategy failed:', strategyError.message);
       }
       
-      const apiUrl = getApiUrl()
-      console.log('Fetching from:', apiUrl)
+      // Strategy 2: Fallback to simple proxy method
+      console.log('🔄 Falling back to simple proxy method...');
+      const posts = await fetchRedditPostsSimple();
+      setPosts(posts);
       
-      const response = await fetch(apiUrl)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      let data = await response.json()
-      
-      // Handle different response formats from CORS proxies
-      if (data.contents) {
-        // allorigins.win format
-        data = JSON.parse(data.contents)
-      }
-      
-      const postsData = data.data?.children || []
-      
-      if (postsData.length === 0) {
-        throw new Error('No posts found in the response')
-      }
-      
-      setPosts(postsData)
     } catch (err) {
-      console.error('Error fetching Reddit data:', err)
-      setError(`Failed to load posts: ${err.message}. Please try refreshing the page.`)
+      console.error('❌ All fetch methods failed:', err);
+      setError(
+        `Unable to load Reddit posts. This could be due to:\n\n` +
+        `• Network connectivity issues\n` +
+        `• All CORS proxy services being temporarily unavailable\n` +
+        `• Reddit API being down\n\n` +
+        `Please try refreshing the page in a few minutes.\n\n` +
+        `Error: ${err.message}`
+      );
     } finally {
       setLoading(false)
     }
