@@ -17,10 +17,31 @@ function App() {
       setLoading(true)
       setError(null)
       
-      // Use proxy in development, direct URL in production
-      const apiUrl = import.meta.env.DEV 
-        ? '/api/reddit/r/reactjs.json'
-        : 'https://www.reddit.com/r/reactjs.json'
+      // Determine API URL based on environment
+      const getApiUrl = () => {
+        // In development, use Vite proxy
+        if (import.meta.env.DEV) {
+          return '/api/reddit/r/reactjs.json'
+        }
+        
+        // In production, try Netlify function first
+        if (window.location.hostname.includes('netlify.app') || window.location.hostname.includes('netlify.com')) {
+          return '/.netlify/functions/reddit-proxy'
+        }
+        
+        // Fallback to CORS proxy services for other deployments
+        const corsProxies = [
+          'https://api.allorigins.win/get?url=',
+          'https://corsproxy.io/?',
+          'https://cors-anywhere.herokuapp.com/'
+        ]
+        
+        const redditUrl = encodeURIComponent('https://www.reddit.com/r/reactjs.json')
+        return `${corsProxies[0]}${redditUrl}`
+      }
+      
+      const apiUrl = getApiUrl()
+      console.log('Fetching from:', apiUrl)
       
       const response = await fetch(apiUrl)
       
@@ -28,13 +49,24 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
-      const data = await response.json()
-      const postsData = data.data.children || []
+      let data = await response.json()
+      
+      // Handle different response formats from CORS proxies
+      if (data.contents) {
+        // allorigins.win format
+        data = JSON.parse(data.contents)
+      }
+      
+      const postsData = data.data?.children || []
+      
+      if (postsData.length === 0) {
+        throw new Error('No posts found in the response')
+      }
       
       setPosts(postsData)
     } catch (err) {
       console.error('Error fetching Reddit data:', err)
-      setError(`Failed to load posts: ${err.message}. This might be due to CORS restrictions.`)
+      setError(`Failed to load posts: ${err.message}. Please try refreshing the page.`)
     } finally {
       setLoading(false)
     }

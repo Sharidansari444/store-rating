@@ -140,6 +140,16 @@ reddit-posts/
 - Retry functionality
 - CORS troubleshooting tips
 
+## 🔒 CORS Solution
+
+**Production-Ready CORS Handling:**
+- 🏆 **Netlify**: Serverless function proxy (recommended)
+- 🌐 **Other hosts**: Automatic fallback to public CORS proxies
+- 🛠️ **Development**: Vite proxy server
+- 🔄 **Fallback chain**: Multiple backup proxy services
+
+**No more CORS errors in production!**
+
 ## 🔍 Browser Compatibility
 
 - ✅ Chrome/Chromium 90+
@@ -155,25 +165,53 @@ reddit-posts/
 - **Tree Shaking**: Optimized bundle sizes
 - **CSS Purging**: Tailwind removes unused styles
 
-## 🚀 Deployment Options
+## 🚀 Deployment Options (CORS Fixed!)
 
-### Vercel (Recommended)
+### 🏆 Netlify (Recommended - No CORS Issues!)
 ```bash
+# Option 1: Using Netlify CLI
+npm install -g netlify-cli
+npm run deploy:netlify
+
+# Option 2: Drag & drop to netlify.com
 npm run build
-# Deploy dist folder to Vercel
+# Upload 'dist' folder to Netlify
 ```
 
-### Netlify
+**✅ Includes serverless function for Reddit API proxy - no CORS errors!**
+
+### 🌐 Other Platforms (Auto CORS Handling)
+The app automatically handles CORS using fallback proxy services:
+
+**Vercel:**
 ```bash
+npm install -g vercel
 npm run build
-# Deploy dist folder to Netlify
+vercel --prod
 ```
 
-### GitHub Pages
+**Firebase:**
 ```bash
+npm install -g firebase-tools
+firebase init hosting
 npm run build
-# Deploy dist folder to gh-pages branch
+firebase deploy
 ```
+
+**GitHub Pages:**
+```bash
+npm install --save-dev gh-pages
+npm run build
+# Add homepage to package.json, then:
+npm run deploy
+```
+
+### 🧪 Test CORS Solutions
+```bash
+npm run test-cors
+```
+
+**All deployment options now handle CORS automatically!**
 
 ## 🤝 Contributing
 

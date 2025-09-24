@@ -22,8 +22,13 @@ const ErrorMessage = ({ message, onRetry }) => {
         {/* CORS help text */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-yellow-800">
-            💡 <strong>Tip:</strong> If you're seeing CORS errors, try running this from a web server or use a CORS proxy service.
+            💡 <strong>Tip:</strong> This app handles CORS automatically using:
           </p>
+          <ul className="text-sm text-yellow-800 mt-2 list-disc list-inside">
+            <li>Netlify serverless functions (on Netlify)</li>
+            <li>CORS proxy services (other deployments)</li>
+            <li>Vite proxy (development)</li>
+          </ul>
         </div>
         
         {/* Retry button */}
